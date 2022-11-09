@@ -126,8 +126,8 @@ int main(int argc, char *argv[]) {
       }
       for(std::size_t j = 0; j < 4; j++) {
 	std::cout << Daughters[i][j];
-	if(j == 4) {
-	  std::cout << ")\n";
+	if(j == 3) {
+	  std::cout << ")";
 	} else {
 	  std::cout << ", ";
 	}
