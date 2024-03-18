@@ -3,6 +3,7 @@
  * @param 1 Filename of LHCb tuple
  * @param 2 Filename of binned LHCb tuple
  * @param 3 Filename of binning scheme
+ * @param 4 Write "Charmless" for the charmless selection
  */
 
 #include<iostream>
@@ -17,7 +18,7 @@
 #include"Utilities.h"
 
 int main(int argc, char *argv[]) {
-  if(argc != 4) {
+  if(argc != 4 && argc != 5) {
     return 0;
   }
   std::cout << "Binning D0->pipipipi events\n";
@@ -25,13 +26,22 @@ int main(int argc, char *argv[]) {
   std::array<TLorentzVector, 4> Daughters;
   // Momentum component names
   const std::array<std::string, 4> Components{"PX", "PY", "PZ", "PE"};
+  // Check if we need the charmless selection
+  bool charmless = false;
+  if(argc == 5 && std::string(argv[4]) == "Charmless") {
+    charmless = true;
+    std::cout << "Using charmless selection\n";
+  }
   // Load LHCb data
   std::cout << "Loading events...\n";
   TChain DataChain("DecayTree");
   DataChain.Add(argv[1]);
+  double Bu_Q;
+  DataChain.SetBranchAddress("Bu_Q", &Bu_Q);
   for(std::size_t i = 1; i <= 4; i++) {
     for(std::size_t j = 0; j < 4; j++) {
-      const std::string ComponentName = "Bu_constD0PV_D0_h"
+      const std::string ComponentPrefix = charmless ? "h" : "Bu_constD0PV_D0_h";
+      const std::string ComponentName = ComponentPrefix
 	                              + std::to_string(i) + "_"
 	                              + Components[j];
       DataChain.SetBranchAddress(ComponentName.c_str(), &Daughters[i - 1][j]);
@@ -53,17 +63,34 @@ int main(int argc, char *argv[]) {
   // Loop over all events
   for(Long64_t n = 0; n < DataChain.GetEntries(); n++) {
     DataChain.GetEntry(n);
+    // For charmless variables, need to correct the particle ordering
+    std::array<TLorentzVector, 4> OrderedDaughters;
+    if(charmless) {
+      if(Bu_Q > 0) {
+	OrderedDaughters[0] = Daughters[0];
+	OrderedDaughters[1] = Daughters[2];
+	OrderedDaughters[2] = Daughters[1];
+	OrderedDaughters[3] = Daughters[3];
+      } else {
+	OrderedDaughters[0] = Daughters[1];
+	OrderedDaughters[1] = Daughters[3];
+	OrderedDaughters[2] = Daughters[0];
+	OrderedDaughters[3] = Daughters[2];
+      }
+    } else {
+      OrderedDaughters = Daughters;
+    }
     // Calculate the five variables that parameterise the D decay
-    const double mPlus = (Daughters[0] + Daughters[1]).M();
-    const double mMinus = (Daughters[2] + Daughters[3]).M();
-    const TLorentzVector P_D = std::accumulate(Daughters.begin(),
-					       Daughters.end(),
+    const double mPlus = (OrderedDaughters[0] + OrderedDaughters[1]).M();
+    const double mMinus = (OrderedDaughters[2] + OrderedDaughters[3]).M();
+    const TLorentzVector P_D = std::accumulate(OrderedDaughters.begin(),
+					       OrderedDaughters.end(),
 					       TLorentzVector());
     double cosThetaPlus =
-      Utilities::getCosTheta(Daughters[0], Daughters[0] + Daughters[1], P_D);
+      Utilities::getCosTheta(OrderedDaughters[0], OrderedDaughters[0] + OrderedDaughters[1], P_D);
     double cosThetaMinus =
-      Utilities::getCosTheta(Daughters[2], Daughters[2] + Daughters[3], P_D);
-    double phi = Utilities::getPhi(Daughters);
+      Utilities::getCosTheta(OrderedDaughters[2], OrderedDaughters[2] + OrderedDaughters[3], P_D);
+    double phi = Utilities::getPhi(OrderedDaughters);
     constexpr double mMin = 2.0*0.13957039*1000.0;
     double mPlusPrime, mMinusPrime;
     if(mMinus > mPlus) {
