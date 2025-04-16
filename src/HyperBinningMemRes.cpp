@@ -199,8 +199,8 @@ void HyperBinningMemRes::load(TString filename, TString option){
   //_verbose = false;
 
   delete currentHyperVolume;
-  delete lowCorner;
-  delete highCorner;
+  delete [] lowCorner;
+  delete [] highCorner;
   delete linkedBins;
 
   updateCash();
