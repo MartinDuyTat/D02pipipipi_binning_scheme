@@ -124,6 +124,7 @@ int main(int argc, char *argv[]) {
       Flip = true;
     }
     // Change from MeV to GeV
+    // Note: CLEO-c binning uses MeV, BESIII binning uses GeV
     mPlusPrime /= 1000.0;
     mMinusPrime /= 1000.0;
     // Create hyperpoint and determine bin number
