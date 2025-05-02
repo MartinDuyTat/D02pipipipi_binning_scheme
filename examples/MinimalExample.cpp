@@ -64,13 +64,7 @@ int main(int argc, char *argv[]) {
     const double mPlus = (Daughters[0] + Daughters[1]).M();
     const double mMinus = (Daughters[2] + Daughters[3]).M();
 
-    double cosThetaPlus =
-      Utilities::getCosTheta(Daughters[0], Daughters[0] + Daughters[1], P_D);
-
-    double cosThetaMinus =
-      Utilities::getCosTheta(Daughters[2], Daughters[2] + Daughters[3], P_D);
-
-    double phi = Utilities::getPhi(Daughters);
+    auto [cosThetaPlus, cosThetaMinus, phi] = Utilities::getAngles(Daughters);
 
     constexpr double mMin = 2.0*0.13957039;
 

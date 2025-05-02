@@ -3,6 +3,7 @@
 #include<vector>
 #include<algorithm>
 #include<numeric>
+#include<tuple>
 #include"TLorentzVector.h"
 #include"TVector3.h"
 #include"Utilities.h"
@@ -80,6 +81,27 @@ namespace Utilities {
     const double costheta = numerator/denominator;
      
     return costheta;
+
+  }
+
+  std::tuple<double, double, double> getAngles(
+    std::array<TLorentzVector, 4> daughters) {
+
+    // Find four-vector of mother particle
+
+    const TLorentzVector P_D = std::accumulate(daughters.begin(),
+					       daughters.end(),
+					       TLorentzVector{});
+
+    double cosThetaPlus =
+      Utilities::getCosTheta(daughters[0], daughters[0] + daughters[1], P_D);
+
+    double cosThetaMinus =
+      Utilities::getCosTheta(daughters[2], daughters[2] + daughters[3], P_D);
+
+    double phi = Utilities::getPhi(daughters);
+
+    return std::make_tuple(cosThetaPlus, cosThetaMinus, phi);
 
   }
   
