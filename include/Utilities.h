@@ -24,6 +24,12 @@ namespace Utilities {
   double getCosTheta(TLorentzVector particle,
 		     const TLorentzVector &parent,
 		     TLorentzVector grandparent);
+  /**
+   * Determine (cos(theta+), cos(theta-), phi)
+   * @param daughters 4-momentum of the daughters in the order pi+ pi+ pi- pi-
+   */
+  std::tuple<double, double, double> getAngles(
+    std::array<TLorentzVector, 4> daughters);
 };
 
 #endif
